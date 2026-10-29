@@ -1136,10 +1136,56 @@ em {
   outline: none;
   box-shadow: 0 2px 0 0 var(--accent);
 }
-.invcard__note {
+/* The link to the activity: shown in full, with a button to copy it on its own. */
+.invcard__link {
+  padding: 14px 16px 16px;
+  border-top: 1px dashed var(--line-strong);
+}
+.linkrow {
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
+}
+.linkrow__url {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--muted);
   font-size: 12px;
-  color: var(--faint);
+  line-height: 38px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* One tap selects the whole link, so it can be copied by hand too. */
+  -webkit-user-select: all;
+  user-select: all;
+}
+.linkrow__copy {
+  flex: none;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.15s, transform 0.15s var(--ease);
+}
+.linkrow__copy:hover {
+  background: var(--hover);
+}
+.linkrow__copy:active {
+  transform: scale(0.96);
+}
+.linkrow__copy--done,
+.linkrow__copy--done:hover {
+  background: var(--olive-bg);
+  border-color: transparent;
+  color: var(--olive-ink);
 }
 
 /* Share action: sticks to the bottom while the page scrolls, and sits in the flow at the end so it never hides content. */

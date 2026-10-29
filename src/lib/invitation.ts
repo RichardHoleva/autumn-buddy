@@ -45,16 +45,31 @@ function isPublicHost(hostname: string): boolean {
   return true;
 }
 
+type Loc = Pick<Location, 'protocol' | 'hostname' | 'origin' | 'pathname'>;
+
+function detailsUrl(id: string, loc: Loc): string {
+  // A file: page reports its origin as the string "null", so build that one from the protocol instead.
+  const base = loc.origin && loc.origin !== 'null' ? loc.origin : `${loc.protocol}//`;
+  return `${base}${loc.pathname}#/details/${encodeURIComponent(id)}`;
+}
+
 /**
  * Link to an activity's details page, which the app already serves without any account (hash routing,
  * so it works on GitHub Pages). Returns undefined when this copy of the app is not publicly reachable,
  * because a link to localhost or a LAN address would just be broken in someone else's chat.
  */
-export function activityUrl(
-  id: string,
-  loc: Pick<Location, 'protocol' | 'hostname' | 'origin' | 'pathname'> = window.location,
-): string | undefined {
+export function activityUrl(id: string, loc: Loc = window.location): string | undefined {
   if (loc.protocol !== 'https:' && loc.protocol !== 'http:') return undefined;
   if (!isPublicHost(loc.hostname)) return undefined;
-  return `${loc.origin}${loc.pathname}#/details/${encodeURIComponent(id)}`;
+  return detailsUrl(id, loc);
+}
+
+/**
+ * The same link for whoever is using this copy of the app, even when it only works on this device
+ * (localhost, a LAN address, a local file). Used by "Copy link", which is always an explicit choice;
+ * it is never added to a shared message unless activityUrl() approves it too.
+ */
+export function deviceActivityUrl(id: string, loc: Loc = window.location): string | undefined {
+  if (loc.protocol !== 'https:' && loc.protocol !== 'http:' && loc.protocol !== 'file:') return undefined;
+  return detailsUrl(id, loc);
 }

@@ -51,6 +51,7 @@ Discover and Saved are the two tabs. Every other screen has a Back button, and a
 - There is no backend. **Share invitation** opens the phone's own share sheet (the Web Share API), so the sender picks any messaging app and any friend or group chat there. Nothing is sent by Autumn Buddy, and it can't know whether a message was delivered, so the app never says "sent".
 - Web Share needs HTTPS (GitHub Pages is) and a browser that supports it. Otherwise the button becomes **Copy invitation** (Clipboard API, with an older copy method as backup).
 - The shared link is `<site>/#/details/:id`, which opens the activity with no account. It is only added when the app is served from a public address; on `localhost` or a LAN address (`npm run dev:phone`) it is left out, since a friend couldn't open it. Share and clipboard are also unavailable on plain-HTTP LAN addresses, so expect the copy fallback there.
+- The invitation card also has a **LINK** row with a **Copy link** button, so the link can be copied on its own as well as sent through the share sheet. Unlike the shared message, "Copy link" works on any address, including `localhost` (marked "this device only").
 - The message is built in `src/lib/invitation.ts`; sharing and copying are in `src/lib/share.ts`.
 - Nothing is tracked after sharing: there is no invite history, no replies and no accounts.
 - Activities and their copy are in `src/data/activities.ts`. Photos are described in the [Photos](#photos) section below.

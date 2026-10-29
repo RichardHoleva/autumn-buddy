@@ -4,10 +4,11 @@ import { Photo } from '../components/Photo';
 import { Screen } from '../components/Screen';
 import { getActivity, type Activity } from '../data/activities';
 import { WHEN, WHEN_KEYS, type WhenKey } from '../data/when';
-import { activityUrl, buildMessage, retimeMessage } from '../lib/invitation';
+import { activityUrl, buildMessage, deviceActivityUrl, retimeMessage } from '../lib/invitation';
 import { canShareNatively, copyText, shareNatively } from '../lib/share';
 
 const NOTE_MS = 4000;
+const LINK_COPIED_MS = 2200;
 
 interface Note {
   kind: 'ok' | 'error';
@@ -31,13 +32,25 @@ function InviteForm({ activity: a }: { activity: Activity }) {
   const [note, setNote] = useState<Note | null>(null);
   // Set once the share sheet has closed normally or the text was copied; offers the way back to browsing.
   const [done, setDone] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const noteTimer = useRef<number | undefined>(undefined);
+  const linkTimer = useRef<number | undefined>(undefined);
   const field = useRef<HTMLTextAreaElement>(null);
+  const linkField = useRef<HTMLDivElement>(null);
 
-  useEffect(() => () => window.clearTimeout(noteTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(noteTimer.current);
+      window.clearTimeout(linkTimer.current);
+    },
+    [],
+  );
 
   const canShare = canShareNatively();
+  // `url` is what goes into shared and copied messages, and only exists when friends can really open it.
+  // `linkToCopy` is what "Copy link" copies: always something, even on localhost where it only works here.
   const url = activityUrl(a.id);
+  const linkToCopy = url ?? deviceActivityUrl(a.id);
   const suggested = buildMessage(a, when);
   const message = custom ?? suggested;
   const edited = custom !== null && custom !== suggested;
@@ -74,6 +87,20 @@ function InviteForm({ activity: a }: { activity: Activity }) {
       showNote('error', 'Couldn’t copy. Select the text and copy it.');
       field.current?.focus();
       field.current?.select();
+    }
+  };
+
+  const copyLink = async () => {
+    if (!linkToCopy) return;
+    if (await copyText(linkToCopy)) {
+      window.clearTimeout(linkTimer.current);
+      setLinkCopied(true);
+      linkTimer.current = window.setTimeout(() => setLinkCopied(false), LINK_COPIED_MS);
+      setDone(true);
+    } else {
+      // Select the link so it can be copied by hand.
+      showNote('error', 'Couldn’t copy. Select the link and copy it.');
+      if (linkField.current) window.getSelection()?.selectAllChildren(linkField.current);
     }
   };
 
@@ -152,8 +179,29 @@ function InviteForm({ activity: a }: { activity: Activity }) {
             placeholder="Write a short message…"
             onChange={(e) => edit(e.target.value)}
           />
-          {url && <p className="invcard__note">A link to this activity is added {canShare ? 'when you share' : 'when you copy'}.</p>}
         </div>
+
+        {linkToCopy && (
+          <div className="invcard__link">
+            <div className="invcard__head">
+              <span className="label" id="invite-link-label">
+                LINK
+              </span>
+              <span className="invcard__hint">
+                {url ? (canShare ? 'ADDED WHEN YOU SHARE' : 'ADDED WHEN YOU COPY') : 'THIS DEVICE ONLY'}
+              </span>
+            </div>
+            <div className="linkrow">
+              {/* One tap selects the whole link, so it can also be copied by hand. */}
+              <div ref={linkField} className="linkrow__url" aria-labelledby="invite-link-label" role="textbox" aria-readonly="true" tabIndex={0}>
+                {linkToCopy}
+              </div>
+              <button type="button" className={linkCopied ? 'linkrow__copy linkrow__copy--done' : 'linkrow__copy'} onClick={copyLink}>
+                <span aria-live="polite">{linkCopied ? 'Copied ✓' : 'Copy link'}</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="invfoot">
