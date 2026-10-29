@@ -1,44 +1,99 @@
-import { useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Navigate, useParams } from 'react-router-dom';
 import { Photo } from '../components/Photo';
 import { Screen } from '../components/Screen';
-import { getActivity } from '../data/activities';
-import { FRIENDS, getFriend } from '../data/people';
+import { getActivity, type Activity } from '../data/activities';
 import { WHEN, WHEN_KEYS, type WhenKey } from '../data/when';
-import { newId } from '../lib/format';
-import { useStore } from '../state/store';
+import { activityUrl, buildMessage, retimeMessage } from '../lib/invitation';
+import { canShareNatively, copyText, shareNatively } from '../lib/share';
+
+const NOTE_MS = 4000;
+
+interface Note {
+  kind: 'ok' | 'error';
+  text: string;
+  /** Restarts the entrance animation when the same kind of note appears twice in a row. */
+  n: number;
+}
 
 export function Invite() {
   const { id } = useParams();
   const a = getActivity(id);
-  const { dispatch } = useStore();
-  const navigate = useNavigate();
-
-  const [friendId, setFriendId] = useState(FRIENDS[0].id);
-  const [when, setWhen] = useState<WhenKey>('after-class');
-  // Until the sender edits the message, it follows the friend / time they pick.
-  const [custom, setCustom] = useState<string | null>(null);
-
   if (!a) return <Navigate to="/discover" replace />;
-  const friend = getFriend(friendId) ?? FRIENDS[0];
+  // Keyed so switching activity (e.g. via the rainy-day plan) starts from a fresh message.
+  return <InviteForm key={a.id} activity={a} />;
+}
 
-  const message = custom ?? `Hey ${friend.first}! Fancy ${a.invitePhrase} ${WHEN[when].phrase}? No pressure at all.`;
+function InviteForm({ activity: a }: { activity: Activity }) {
+  const [when, setWhen] = useState<WhenKey>('flexible');
+  // Until the sender edits the message, it follows the activity and time they pick.
+  const [custom, setCustom] = useState<string | null>(null);
+  const [note, setNote] = useState<Note | null>(null);
+  const noteTimer = useRef<number | undefined>(undefined);
+  const field = useRef<HTMLTextAreaElement>(null);
 
-  const send = () => {
+  useEffect(() => () => window.clearTimeout(noteTimer.current), []);
+
+  const canShare = canShareNatively();
+  const url = activityUrl(a.id);
+  const suggested = buildMessage(a, when);
+  const message = custom ?? suggested;
+  const edited = custom !== null && custom !== suggested;
+
+  const clearNote = () => {
+    window.clearTimeout(noteTimer.current);
+    setNote(null);
+  };
+  const showNote = (kind: Note['kind'], text: string) => {
+    window.clearTimeout(noteTimer.current);
+    setNote({ kind, text, n: Date.now() });
+    noteTimer.current = window.setTimeout(() => setNote(null), NOTE_MS);
+  };
+
+  const pickWhen = (next: WhenKey) => {
+    if (custom !== null) setCustom(retimeMessage(custom, when, next));
+    setWhen(next);
+    clearNote();
+  };
+  const edit = (value: string) => {
+    setCustom(value);
+    clearNote();
+  };
+  const reset = () => {
+    setCustom(null);
+    clearNote();
+  };
+
+  const copy = async (text: string, okText: string) => {
+    if (await copyText(url ? `${text}\n${url}` : text)) {
+      showNote('ok', okText);
+    } else {
+      showNote('error', 'Couldn’t copy. Select the text and copy it.');
+      field.current?.focus();
+      field.current?.select();
+    }
+  };
+
+  const share = async () => {
     const text = message.trim();
     if (!text) return;
-    const invite = { id: newId(), activityId: a.id, friendId: friend.id, when, message: text, status: 'pending' as const, sentAt: Date.now() };
-    dispatch({ type: 'send', invite });
-    navigate('/invites', { replace: true, state: { notice: `Invite sent to ${friend.first}. No rush on their end.` } });
+    if (!canShare) {
+      await copy(text, 'Copied. Paste it into any chat.');
+      return;
+    }
+    // The share sheet needs the click's user gesture, so this must be the first thing that runs.
+    const outcome = await shareNatively({ title: a.title, text, ...(url ? { url } : {}) });
+    if (outcome === 'cancelled') clearNote();
+    else if (outcome === 'failed') await copy(text, 'Copied instead. Paste it into any chat.');
+    // 'shared' only means the sheet closed normally; we can't know it was delivered, so we say nothing.
   };
 
   return (
     <Screen back>
       <div className="eyebrow">A LITTLE INVITATION</div>
       <h1 className="title">
-        Better with <em>a buddy.</em>
+        Better with <em>friends.</em>
       </h1>
-      <p className="sub">Keep it casual, just like the activity.</p>
 
       <div className="invcard">
         <div className="invcard__act">
@@ -46,70 +101,75 @@ export function Invite() {
           <div>
             <div className="invcard__title">{a.title}</div>
             <div className="invcard__meta">
-              {a.minutes} MIN · {a.near} · FLEXIBLE
+              {a.minutes} MIN · {a.where.toUpperCase()}
             </div>
           </div>
         </div>
 
         <div className="invcard__sec">
-          <div className="label">TO</div>
-          <div className="people" role="radiogroup" aria-label="Send to">
-            {FRIENDS.map((f) => {
-              const on = f.id === friendId;
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  className={on ? 'person person--on' : 'person'}
-                  onClick={() => setFriendId(f.id)}
-                >
-                  <span className="avatar" style={on ? undefined : { background: f.tint }}>
-                    {f.initials}
-                  </span>
-                  {on ? `${f.name} ✓` : f.first}
-                </button>
-              );
-            })}
+          <div className="label" id="invite-when">
+            WHEN?
+          </div>
+          <div className="chips chips--card" role="radiogroup" aria-labelledby="invite-when">
+            {WHEN_KEYS.map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={k === when}
+                className={k === when ? 'chip chip--on' : 'chip'}
+                onClick={() => pickWhen(k)}
+              >
+                {WHEN[k].label}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="invcard__msg">
-          <label className="label" htmlFor="invite-message">
-            MESSAGE
-          </label>
+          <div className="invcard__head">
+            <label className="label" htmlFor="invite-message">
+              MESSAGE
+            </label>
+            {edited ? (
+              <button type="button" className="invcard__reset" onClick={reset}>
+                RESET
+              </button>
+            ) : (
+              <span className="invcard__hint">TAP TO EDIT</span>
+            )}
+          </div>
           <textarea
             id="invite-message"
+            ref={field}
             className="msg"
-            rows={3}
+            rows={6}
             value={message}
-            onChange={(e) => setCustom(e.target.value)}
+            placeholder="Write a short message…"
+            onChange={(e) => edit(e.target.value)}
           />
+          {url && <p className="invcard__note">A link to this activity is added {canShare ? 'when you share' : 'when you copy'}.</p>}
         </div>
       </div>
 
-      <div className="label label--pad">WHEN</div>
-      <div className="chips chips--when" role="radiogroup" aria-label="When">
-        {WHEN_KEYS.map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={k === when}
-            className={k === when ? 'chip chip--on' : 'chip'}
-            onClick={() => setWhen(k)}
-          >
-            {WHEN[k].label}
-          </button>
-        ))}
-      </div>
-
-      <div className="foot">
-        <div className="hint">They can say yes, no, or suggest another time.</div>
-        <button type="button" className="btn btn--accent" onClick={send} disabled={!message.trim()}>
-          Send friendly invite →
+      <div className="invfoot">
+        <button type="button" className="btn btn--accent" onClick={share} disabled={!message.trim()}>
+          {canShare ? 'Share invitation' : 'Copy invitation'}
         </button>
+        <div className="sharenote">
+          <p className={note ? 'sharenote__hint sharenote__hint--off' : 'sharenote__hint'}>
+            {canShare
+              ? 'Share with a friend or group chat. They don’t need Autumn Buddy.'
+              : 'Paste it into a chat with a friend or group. They don’t need Autumn Buddy.'}
+          </p>
+          <div className="sharenote__live" aria-live="polite">
+            {note && (
+              <p key={note.n} className={`sharenote__msg sharenote__msg--${note.kind}`}>
+                {note.text}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </Screen>
   );

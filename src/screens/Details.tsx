@@ -60,7 +60,7 @@ export function Details() {
 
         <div className="sheet__foot">
           <Link to={`/invite/${a.id}`} className="btn btn--accent">
-            Invite a friend →
+            Invite friends →
           </Link>
           <button
             type="button"

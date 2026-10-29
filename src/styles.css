@@ -229,9 +229,6 @@ em {
   letter-spacing: 0.1em;
   color: var(--muted);
 }
-.label--pad {
-  padding: 18px 28px 0;
-}
 .note {
   padding: 14px 28px 0;
   font-size: 12px;
@@ -329,9 +326,6 @@ em {
 }
 .chips--pad {
   padding: 22px 28px 0;
-}
-.chips--when {
-  padding: 10px 28px 0;
 }
 .chips--center {
   justify-content: center;
@@ -1083,6 +1077,8 @@ em {
 
 /* ---------- Invite ---------- */
 .invcard {
+  /* overflow:hidden would let this flex item shrink below its content; keep it full height and let the page scroll. */
+  flex: none;
   margin: 22px 20px 0;
   border-radius: 22px;
   background: var(--paper);
@@ -1098,50 +1094,140 @@ em {
 }
 .invcard__thumb {
   flex: none;
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
 }
 .invcard__title {
-  font: 400 22px/1 var(--serif);
+  font: 400 24px/1 var(--serif);
 }
 .invcard__meta {
-  margin-top: 4px;
+  margin-top: 5px;
   font: 400 10px var(--mono);
+  letter-spacing: 0.06em;
   color: var(--muted);
 }
 .invcard__sec {
-  padding: 14px 16px;
+  padding: 14px 16px 16px;
   border-bottom: 1px dashed var(--line-strong);
 }
-.invcard__msg {
-  padding: 14px 16px 18px;
-}
-.people {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.chips--card {
   margin-top: 10px;
 }
-.person {
+.invcard__msg {
+  padding: 14px 16px 16px;
+}
+.invcard__head {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px 4px 4px;
-  border-radius: 20px;
-  border: 1px solid var(--line-strong);
+  justify-content: space-between;
+  align-items: baseline;
+}
+.invcard__hint,
+.invcard__reset {
+  font: 400 10px var(--mono);
+  letter-spacing: 0.1em;
+}
+.invcard__hint {
+  color: var(--faint);
+}
+.invcard__reset {
+  padding: 6px 0;
+  margin: -6px 0;
+  font-weight: 500;
+  color: var(--accent);
+}
+.msg {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  font: italic 400 20px/1.3 var(--serif);
+  field-sizing: content;
+  min-height: 5.2em;
+}
+.msg::placeholder {
+  color: var(--faint);
+}
+.msg:focus-visible {
+  outline: none;
+  box-shadow: 0 2px 0 0 var(--accent);
+}
+.invcard__note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+/* Share action: sticks to the bottom while the page scrolls, and sits in the flow at the end so it never hides content. */
+.invfoot {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: 16px 20px calc(18px + var(--safe-bottom));
+  background: linear-gradient(to bottom, rgba(246, 242, 234, 0), var(--bg) 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* The reassurance line, and the short "Copied" confirmation that takes its place for a moment. */
+.sharenote {
+  height: 34px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+}
+.sharenote > * {
+  grid-area: 1 / 1;
+}
+.sharenote__hint {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s var(--ease);
+}
+.sharenote__hint--off {
+  opacity: 0;
+}
+.sharenote__live {
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+}
+.sharenote__msg {
+  max-width: 100%;
+  padding: 7px 14px;
+  border-radius: 16px;
   font-size: 13px;
   font-weight: 600;
+  text-align: center;
+  animation: rise 0.28s var(--ease);
 }
-.person:hover {
+.sharenote__msg--ok {
+  background: var(--olive-bg);
+  color: var(--olive-ink);
+}
+.sharenote__msg--error {
   background: var(--hover);
+  color: var(--ink);
 }
-.person--on,
-.person--on:hover {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--bg);
+@media (max-height: 720px) {
+  .invcard {
+    margin-top: 16px;
+  }
+  .invfoot {
+    padding-top: 12px;
+    padding-bottom: calc(14px + var(--safe-bottom));
+  }
 }
+
+/* Avatars: used by the friend's reply and confirmed screens. */
 .avatar {
   flex: none;
   width: 28px;
@@ -1152,10 +1238,6 @@ em {
   justify-content: center;
   font-size: 11px;
   color: var(--ink);
-}
-.person--on .avatar {
-  background: var(--accent);
-  color: var(--bg);
 }
 .avatar--sm {
   width: 24px;
@@ -1172,24 +1254,6 @@ em {
 }
 .avatar--overlap {
   margin-left: -8px;
-}
-.msg {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  padding: 0;
-  border: 0;
-  outline: none;
-  resize: none;
-  background: transparent;
-  color: var(--ink);
-  font: italic 400 22px/1.25 var(--serif);
-  field-sizing: content;
-  min-height: 3.75em;
-}
-.msg:focus-visible {
-  outline: none;
-  box-shadow: 0 2px 0 0 var(--accent);
 }
 
 /* ---------- Response ---------- */
