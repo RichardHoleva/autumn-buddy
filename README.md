@@ -40,7 +40,7 @@ GitHub Pages.
 | `#/discover` | Swipe deck. Drag right to save, left to skip, tap the card (or **View activity**) for details. Skip / Save buttons and arrow keys work too. |
 | `#/saved` | Saved list with All / Outdoors / Indoors filter |
 | `#/invites` | Sent invites and their status |
-| `#/details/:id` | Activity details |
+| `#/details/:id` | Activity details: quick info, three steps, rainy-day option, **Invite a friend** and **Save for later** (shows ✓ Saved once saved) |
 | `#/invite/:id` | Pick a friend and time, edit the message, send |
 | `#/respond/:inviteId` | The friend's view: say yes, suggest another time, or decline |
 | `#/confirmed/:inviteId` | Confirmed plan ticket |

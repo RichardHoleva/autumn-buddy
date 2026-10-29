@@ -21,7 +21,8 @@ export interface Activity {
   invitePhrase: string;
   near: string;
   meet: string;
-  who: string;
+  /** Quick-info chip on Details. Only set where it is worth saying; never implies a fixed party size. */
+  group?: string;
   /** Indoor backup if it rains. Indoor activities have none. */
   rainyAlt?: string;
 }
@@ -43,7 +44,7 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a quick hot drink walk',
     near: 'NEAR CAMPUS',
     meet: 'Campus café entrance',
-    who: 'You + 1',
+    group: 'Great with friends',
     rainyAlt: 'rainy-day-swap',
   },
   {
@@ -53,10 +54,10 @@ export const ACTIVITIES: Activity[] = [
     minutes: 10,
     where: 'Outdoors',
     blurb: 'Each find the reddest, biggest and strangest leaf. Compare.',
-    tagline: 'Ten minutes, two pockets, one winner.',
+    tagline: 'Ten minutes, pockets full of leaves, one winner.',
     steps: [
       'Head to the nearest tree-lined path.',
-      'Each find the reddest, biggest and strangest leaf.',
+      'Each find the reddest, strangest leaf.',
       'Compare finds. Keep the best one.',
     ],
     photo: 'hands holding leaves',
@@ -66,7 +67,7 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a little leaf hunt',
     near: 'NEAR CAMPUS',
     meet: 'Main quad, by the big oak',
-    who: 'You + 1',
+    group: 'Great with friends',
     rainyAlt: 'rainy-day-swap',
   },
   {
@@ -85,7 +86,6 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a cozy rainy day swap',
     near: 'INDOORS',
     meet: 'Library café, back corner',
-    who: 'You + 1',
   },
   {
     id: 'golden-hour-bench',
@@ -107,7 +107,6 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a golden hour bench sit',
     near: 'NEAR CAMPUS',
     meet: 'West-facing bench by the pond',
-    who: 'You + 1',
     rainyAlt: 'cinnamon-bake',
   },
   {
@@ -116,11 +115,11 @@ export const ACTIVITIES: Activity[] = [
     title: 'Cinnamon Bake',
     minutes: 45,
     where: 'Indoors',
-    blurb: 'One recipe, two people, one oven. Mess allowed.',
-    tagline: 'One recipe, two people, one warm kitchen.',
+    blurb: 'One recipe, one oven, plenty of hands. Mess allowed.',
+    tagline: 'One recipe, one warm kitchen, flour everywhere.',
     steps: [
       'Pick an easy cinnamon roll recipe.',
-      'Split the dough and the filling between you.',
+      'Split the dough and filling between you.',
       'Bake, wait, and eat them warm.',
     ],
     photo: 'flour, cinnamon rolls',
@@ -130,7 +129,7 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a cinnamon bake',
     near: 'INDOORS',
     meet: 'Whoever has the better oven',
-    who: 'You + 1',
+    group: 'Great with friends',
   },
   {
     id: 'market-wander',
@@ -139,9 +138,9 @@ export const ACTIVITIES: Activity[] = [
     minutes: 30,
     where: 'Outdoors',
     blurb: 'Walk a farmers market and each pick one thing under €3.',
-    tagline: 'Half an hour, two budgets, one surprise each.',
+    tagline: 'Half an hour, a small budget, one surprise each.',
     steps: [
-      'Walk the whole market once before buying anything.',
+      'Do a full lap before buying anything.',
       'Each pick one thing under €3.',
       'Swap and share what you found.',
     ],
@@ -152,7 +151,7 @@ export const ACTIVITIES: Activity[] = [
     invitePhrase: 'a market wander',
     near: 'TOWN CENTRE',
     meet: 'Market entrance, by the flower stall',
-    who: 'You + 1',
+    group: 'Great with friends',
     rainyAlt: 'cinnamon-bake',
   },
 ];

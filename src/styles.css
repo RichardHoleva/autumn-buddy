@@ -929,13 +929,19 @@ em {
 .hero {
   position: relative;
   flex: none;
-  height: 330px;
-  padding-top: calc(var(--safe-top) + 36px);
+  height: clamp(230px, 34vh, 320px);
 }
-.hero__bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  flex: none;
+  height: 0;
+}
+.topbar .roundlight {
+  position: absolute;
+  top: calc(var(--safe-top) + 36px);
+  left: 20px;
 }
 .hero__cap {
   position: absolute;
@@ -944,23 +950,15 @@ em {
   font: 400 10px var(--mono);
 }
 .roundlight {
-  width: 42px;
-  height: 42px;
-  border-radius: 21px;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
   background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.counter {
-  height: 42px;
-  padding: 0 14px;
-  border-radius: 21px;
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  font: 400 11px var(--mono);
-  color: var(--ink);
+  font-size: 18px;
+  box-shadow: 0 2px 10px -3px rgba(36, 28, 22, 0.35);
 }
 .sheet {
   position: relative;
@@ -974,41 +972,42 @@ em {
 }
 .sheet__title {
   font: 400 46px/1 var(--serif);
+  text-wrap: balance;
 }
 .sheet__tagline {
   padding-top: 8px;
   font-size: 15px;
+  line-height: 1.45;
+  color: var(--body);
+  text-wrap: pretty;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.tag {
+  padding: 7px 13px;
+  border-radius: 16px;
+  border: 1px solid var(--line-strong);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--body);
 }
-.facts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-top: 20px;
+.section {
+  margin-top: 22px;
+  padding-top: 18px;
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
 }
-.fact {
-  padding: 12px 0;
-}
-.fact + .fact {
-  padding-left: 14px;
-  border-left: 1px solid var(--line);
-}
-.fact dt {
-  font: 400 9px var(--mono);
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-.fact dd {
-  margin-top: 4px;
-  font-weight: 600;
-  font-size: 15px;
+.section__label {
+  margin: 0;
 }
 .steps {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 .step {
   display: grid;
@@ -1021,28 +1020,65 @@ em {
 }
 .step__t {
   font-size: 15px;
+  line-height: 1.4;
 }
-.sheet__foot {
-  margin-top: auto;
-  padding: 22px 0 calc(28px + var(--safe-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.swapnote {
+/* Rainy-day alternative: one quiet line, clearly secondary to the actions below. */
+.rainnote {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: 14px;
+  min-height: 48px;
+  margin-top: 22px;
+  padding: 0 16px;
+  border-radius: 16px;
   background: var(--olive-bg);
   color: var(--olive-ink);
-  font-size: 13px;
+  font-size: 14px;
 }
-.swapnote strong {
+.rainnote strong {
   font-weight: 700;
-  white-space: nowrap;
+}
+/* Sticks to the bottom of the screen while the page scrolls; sits in the flow at the end, so it never hides content. */
+.sheet__foot {
+  position: sticky;
+  bottom: 0;
+  margin: auto -28px 0;
+  padding: 16px 28px calc(22px + var(--safe-bottom));
+  background: linear-gradient(to bottom, rgba(246, 242, 234, 0), var(--bg) 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn--saved,
+.btn--saved:hover {
+  background: var(--olive-bg);
+  border-color: transparent;
+  color: var(--olive-ink);
+  cursor: default;
+  animation: rise 0.28s var(--ease);
+}
+@media (max-height: 720px) {
+  .hero {
+    height: 200px;
+  }
+  .sheet {
+    padding-top: 20px;
+  }
+  .sheet__foot {
+    padding-top: 12px;
+    padding-bottom: calc(16px + var(--safe-bottom));
+  }
+  .sheet__title {
+    font-size: 40px;
+  }
+  .section {
+    margin-top: 18px;
+    padding-top: 14px;
+  }
+  .rainnote {
+    margin-top: 18px;
+  }
 }
 
 /* ---------- Invite ---------- */
