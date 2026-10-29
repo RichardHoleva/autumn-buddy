@@ -1,15 +1,22 @@
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { hasOpenInvites, useStore } from '../state/store';
+import { useStore } from '../state/store';
 
-export function BackButton({ className = 'back' }: { className?: string }) {
+/**
+ * Goes back one step. react-router stores the history position in history.state.idx; 0 means the page was
+ * opened directly (a shared link, a refresh) with nothing to go back to, so fall back to `fallback`.
+ */
+export function useGoBack(fallback = '/discover') {
   const navigate = useNavigate();
-  const goBack = () => {
-    // react-router stores the history position in history.state.idx; 0 means a deep link with nothing to go back to.
+  return () => {
     const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
     if (idx > 0) navigate(-1);
-    else navigate('/discover', { replace: true });
+    else navigate(fallback, { replace: true });
   };
+}
+
+export function BackButton({ className = 'back' }: { className?: string }) {
+  const goBack = useGoBack();
   return (
     <button type="button" className={className} onClick={goBack} aria-label="Back">
       ←
@@ -19,7 +26,6 @@ export function BackButton({ className = 'back' }: { className?: string }) {
 
 function TabBar() {
   const { state } = useStore();
-  const open = hasOpenInvites(state.invites);
   const tab = ({ isActive }: { isActive: boolean }) => (isActive ? 'tab tab--on' : 'tab');
   return (
     <nav className="tabbar" aria-label="Main">
@@ -31,10 +37,6 @@ function TabBar() {
           Saved
           {state.saved.length > 0 && <span className="tab__count">{state.saved.length}</span>}
         </NavLink>
-        <NavLink to="/invites" end className={tab}>
-          Invites
-          {open && <span className="tab__dot" role="img" aria-label="Waiting on a reply" />}
-        </NavLink>
       </div>
     </nav>
   );
@@ -42,7 +44,7 @@ function TabBar() {
 
 interface Props {
   children: ReactNode;
-  /** Show the Discover / Saved / Invites tab bar. */
+  /** Show the Discover / Saved tab bar. */
   tabs?: boolean;
   /** Show a floating back button. */
   back?: boolean;
@@ -54,7 +56,9 @@ export function Screen({ children, tabs, back, bleed }: Props) {
   return (
     <div className="screen">
       {back && <BackButton />}
-      <div className={bleed ? 'screen__body screen__body--bleed' : 'screen__body'}>{children}</div>
+      <div className={bleed ? 'screen__body screen__body--bleed' : back ? 'screen__body screen__body--back' : 'screen__body'}>
+        {children}
+      </div>
       {tabs && <TabBar />}
     </div>
   );

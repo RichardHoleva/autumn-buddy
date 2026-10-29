@@ -2,11 +2,10 @@ export type Where = 'Outdoors' | 'Indoors';
 
 export interface Activity {
   id: string;
-  no: number;
   title: string;
   minutes: number;
   where: Where;
-  /** Short line shown on the Discover card. */
+  /** Short line shown on the Discover card and in the invitation message. */
   blurb: string;
   /** Subtitle on the Details screen. */
   tagline: string;
@@ -17,10 +16,6 @@ export interface Activity {
   image?: string;
   tint: [string, string];
   ink: string;
-  /** Fits "Fancy ___ after class?" in the default invite message. */
-  invitePhrase: string;
-  near: string;
-  meet: string;
   /** Quick-info chip on Details. Only set where it is worth saying; never implies a fixed party size. */
   group?: string;
   /** Indoor backup if it rains. Indoor activities have none. */
@@ -30,7 +25,6 @@ export interface Activity {
 export const ACTIVITIES: Activity[] = [
   {
     id: 'hot-drink-walk',
-    no: 1,
     title: 'Hot Drink Walk',
     minutes: 15,
     where: 'Outdoors',
@@ -41,15 +35,11 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'steaming cup on a park path',
     tint: ['#EFD9C6', '#E8CDB6'],
     ink: '#8A4A28',
-    invitePhrase: 'a quick hot drink walk',
-    near: 'NEAR CAMPUS',
-    meet: 'Campus café entrance',
     group: 'Great with friends',
     rainyAlt: 'rainy-day-swap',
   },
   {
     id: 'leaf-hunt',
-    no: 2,
     title: 'Leaf Hunt',
     minutes: 10,
     where: 'Outdoors',
@@ -64,15 +54,11 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'hands holding autumn leaves',
     tint: ['#DDE3CC', '#D3DBBF'],
     ink: '#55603F',
-    invitePhrase: 'a little leaf hunt',
-    near: 'NEAR CAMPUS',
-    meet: 'Main quad, by the big oak',
     group: 'Great with friends',
     rainyAlt: 'rainy-day-swap',
   },
   {
     id: 'rainy-day-swap',
-    no: 3,
     title: 'Rainy Day Swap',
     minutes: 20,
     where: 'Indoors',
@@ -83,13 +69,9 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'two mugs by a rainy window',
     tint: ['#E3DDD3', '#DAD3C7'],
     ink: '#6E655A',
-    invitePhrase: 'a cozy rainy day swap',
-    near: 'INDOORS',
-    meet: 'Library café, back corner',
   },
   {
     id: 'golden-hour-bench',
-    no: 4,
     title: 'Golden Hour Bench',
     minutes: 20,
     where: 'Outdoors',
@@ -104,14 +86,10 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'a bench in low golden light',
     tint: ['#F1DFC0', '#EAD4AE'],
     ink: '#86602A',
-    invitePhrase: 'a golden hour bench sit',
-    near: 'NEAR CAMPUS',
-    meet: 'West-facing bench by the pond',
     rainyAlt: 'cinnamon-bake',
   },
   {
     id: 'cinnamon-bake',
-    no: 5,
     title: 'Cinnamon Bake',
     minutes: 45,
     where: 'Indoors',
@@ -126,14 +104,10 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'cinnamon rolls on a floury counter',
     tint: ['#EFD9C6', '#E8CDB6'],
     ink: '#8A4A28',
-    invitePhrase: 'a cinnamon bake',
-    near: 'INDOORS',
-    meet: 'Whoever has the better oven',
     group: 'Great with friends',
   },
   {
     id: 'market-wander',
-    no: 6,
     title: 'Market Wander',
     minutes: 30,
     where: 'Outdoors',
@@ -148,15 +122,10 @@ export const ACTIVITIES: Activity[] = [
     detailPhoto: 'pumpkins stacked at a market stall',
     tint: ['#DDE3CC', '#D3DBBF'],
     ink: '#55603F',
-    invitePhrase: 'a market wander',
-    near: 'TOWN CENTRE',
-    meet: 'Market entrance, by the flower stall',
     group: 'Great with friends',
     rainyAlt: 'cinnamon-bake',
   },
 ];
-
-export const TOTAL = ACTIVITIES.length;
 
 export function getActivity(id: string | undefined): Activity | undefined {
   return ACTIVITIES.find((a) => a.id === id);

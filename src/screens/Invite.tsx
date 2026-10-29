@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { Photo } from '../components/Photo';
 import { Screen } from '../components/Screen';
 import { getActivity, type Activity } from '../data/activities';
@@ -29,6 +29,8 @@ function InviteForm({ activity: a }: { activity: Activity }) {
   // Until the sender edits the message, it follows the activity and time they pick.
   const [custom, setCustom] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
+  // Set once the share sheet has closed normally or the text was copied; offers the way back to browsing.
+  const [done, setDone] = useState(false);
   const noteTimer = useRef<number | undefined>(undefined);
   const field = useRef<HTMLTextAreaElement>(null);
 
@@ -67,6 +69,7 @@ function InviteForm({ activity: a }: { activity: Activity }) {
   const copy = async (text: string, okText: string) => {
     if (await copyText(url ? `${text}\n${url}` : text)) {
       showNote('ok', okText);
+      setDone(true);
     } else {
       showNote('error', 'Couldn’t copy. Select the text and copy it.');
       field.current?.focus();
@@ -85,7 +88,8 @@ function InviteForm({ activity: a }: { activity: Activity }) {
     const outcome = await shareNatively({ title: a.title, text, ...(url ? { url } : {}) });
     if (outcome === 'cancelled') clearNote();
     else if (outcome === 'failed') await copy(text, 'Copied instead. Paste it into any chat.');
-    // 'shared' only means the sheet closed normally; we can't know it was delivered, so we say nothing.
+    // 'shared' only means the sheet closed normally; we can't know it was delivered, so we say nothing about that.
+    else setDone(true);
   };
 
   return (
@@ -157,11 +161,21 @@ function InviteForm({ activity: a }: { activity: Activity }) {
           {canShare ? 'Share invitation' : 'Copy invitation'}
         </button>
         <div className="sharenote">
-          <p className={note ? 'sharenote__hint sharenote__hint--off' : 'sharenote__hint'}>
-            {canShare
-              ? 'Share with a friend or group chat. They don’t need Autumn Buddy.'
-              : 'Paste it into a chat with a friend or group. They don’t need Autumn Buddy.'}
-          </p>
+          {done ? (
+            <Link
+              to="/discover"
+              className={note ? 'sharenote__next sharenote__next--off' : 'sharenote__next'}
+              tabIndex={note ? -1 : undefined}
+            >
+              Back to Discover →
+            </Link>
+          ) : (
+            <p className={note ? 'sharenote__hint sharenote__hint--off' : 'sharenote__hint'}>
+              {canShare
+                ? 'Share with a friend or group chat. They don’t need Autumn Buddy.'
+                : 'Paste it into a chat with a friend or group. They don’t need Autumn Buddy.'}
+            </p>
+          )}
           <div className="sharenote__live" aria-live="polite">
             {note && (
               <p key={note.n} className={`sharenote__msg sharenote__msg--${note.kind}`}>

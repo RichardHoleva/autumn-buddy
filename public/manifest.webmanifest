@@ -1,7 +1,7 @@
 {
   "name": "Autumn Buddy",
   "short_name": "Autumn Buddy",
-  "description": "Discover simple autumn activities, save what you love, and invite a friend.",
+  "description": "Discover simple autumn activities, save what you love, and share them with friends.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

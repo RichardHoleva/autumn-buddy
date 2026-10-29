@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { BackButton, Screen } from '../components/Screen';
+import { Screen } from '../components/Screen';
 import { Photo } from '../components/Photo';
 import { getActivity } from '../data/activities';
 import { useStore } from '../state/store';
@@ -12,17 +12,11 @@ export function Details() {
 
   const rainy = getActivity(a.rainyAlt);
   const saved = state.saved.includes(a.id);
-  // The store ignores a repeat save too; this just keeps the saved button inert.
-  const save = () => {
-    if (!saved) dispatch({ type: 'save', id: a.id });
-  };
+  // One button, both ways: Saved and Discover read the same list, so this stays in step with them.
+  const toggleSave = () => dispatch({ type: saved ? 'unsave' : 'save', id: a.id });
 
   return (
-    <Screen bleed>
-      {/* Zero-height sticky bar: keeps Back on screen while the page scrolls on short phones. */}
-      <div className="topbar">
-        <BackButton className="roundlight" />
-      </div>
+    <Screen bleed back>
       <Photo activity={a} className="hero" caption={<span className="hero__cap">photo: {a.detailPhoto}</span>} />
 
       <div className="sheet">
@@ -65,10 +59,15 @@ export function Details() {
           <button
             type="button"
             className={saved ? 'btn btn--ghost btn--sm btn--saved' : 'btn btn--ghost btn--sm'}
-            aria-disabled={saved}
-            onClick={save}
+            onClick={toggleSave}
           >
-            {saved ? '✓ Saved' : 'Save for later'}
+            {saved ? (
+              <>
+                ✓ Saved <span className="btn__sub">· Tap to remove</span>
+              </>
+            ) : (
+              'Save for later'
+            )}
           </button>
         </div>
       </div>

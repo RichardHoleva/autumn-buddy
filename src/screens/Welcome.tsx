@@ -16,8 +16,8 @@ export function Welcome() {
       </h1>
 
       <div className="collage" aria-hidden="true">
-        <Photo activity={leaves} className="collage__card collage__card--left" />
-        <Photo activity={rainy} className="collage__card collage__card--right" />
+        <Photo activity={leaves} className="collage__card collage__card--left" caption={null} />
+        <Photo activity={rainy} className="collage__card collage__card--right" caption={null} />
         <div className="collage__front">
           <Photo activity={hero} className="collage__photo" caption={<span>photo: warm cup</span>} />
           <div className="collage__name">{hero.title}</div>
@@ -28,7 +28,7 @@ export function Welcome() {
       </div>
 
       <p className="welcome__copy">
-        Discover simple autumn activities, save what you love, and invite a friend whenever you’re ready.
+        Discover simple autumn activities, save what you love, and share them with friends whenever you’re ready.
       </p>
 
       <div className="foot foot--welcome">

@@ -174,7 +174,7 @@ export function Discover() {
             <p className="deck__end-copy">
               {state.skipped.length > 0
                 ? 'Skipped a few? They can come back whenever you like.'
-                : 'You saved every idea. Open one to plan it with a friend.'}
+                : 'You saved every idea. Open one to share it with friends.'}
             </p>
             {state.saved.length > 0 && (
               <Link to="/saved" className="btn btn--accent btn--sm btn--auto">
@@ -212,7 +212,7 @@ export function Discover() {
 
       {card && (
         <div className="actions">
-          <button type="button" className="swipebtn swipebtn--skip" onClick={() => decide(-1)}>
+          <button type="button" className="swipebtn" onClick={() => decide(-1)}>
             <IconSkip />
             Skip
           </button>

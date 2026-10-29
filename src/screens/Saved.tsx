@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Photo } from '../components/Photo';
 import { Screen } from '../components/Screen';
 import { getActivity, type Activity, type Where } from '../data/activities';
-import { pad2 } from '../lib/format';
 import { useStore } from '../state/store';
 
 type Filter = 'All' | Where;
 const FILTERS: Filter[] = ['All', 'Outdoors', 'Indoors'];
+const UNDO_MS = 5000;
 
 export function Saved() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [filter, setFilter] = useState<Filter>('All');
+  // The last thing removed, so a slip of the thumb can be undone for a few seconds.
+  const [removed, setRemoved] = useState<{ id: string; title: string } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   // Newest first.
   const saved = [...state.saved]
@@ -19,6 +24,19 @@ export function Saved() {
     .map(getActivity)
     .filter((a): a is Activity => !!a);
   const shown = saved.filter((a) => filter === 'All' || a.where === filter);
+
+  const remove = (a: Activity) => {
+    dispatch({ type: 'unsave', id: a.id });
+    setRemoved({ id: a.id, title: a.title });
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setRemoved(null), UNDO_MS);
+  };
+  const undo = () => {
+    if (!removed) return;
+    dispatch({ type: 'save', id: removed.id });
+    window.clearTimeout(timer.current);
+    setRemoved(null);
+  };
 
   return (
     <Screen tabs>
@@ -56,7 +74,7 @@ export function Saved() {
           </div>
           <p className="empty__copy">Swipe right on an idea you like, or tap Save, and it will wait for you here.</p>
           <Link to="/discover" className="btn btn--ink btn--sm btn--auto">
-            Find something to do →
+            Explore activities →
           </Link>
         </div>
       ) : shown.length === 0 ? (
@@ -64,25 +82,47 @@ export function Saved() {
           <p className="empty__copy">Nothing saved in {filter.toLowerCase()} yet.</p>
         </div>
       ) : (
-        <ul className="list">
+        <ul className="scards">
           {shown.map((a) => (
-            <li key={a.id} className="row">
-              <Link to={`/details/${a.id}`} className="row__main">
-                <Photo activity={a} stripe={6} className="thumb" caption={pad2(a.no)} />
+            <li key={a.id} className="scard">
+              <Link to={`/details/${a.id}`} className="scard__main">
+                <Photo activity={a} stripe={6} className="scard__thumb" caption={null} />
                 <div>
-                  <div className="row__title">{a.title}</div>
-                  <div className="row__meta">
+                  <div className="scard__title">{a.title}</div>
+                  <div className="scard__meta">
                     {a.minutes} MIN · {a.where.toUpperCase()}
                   </div>
                 </div>
               </Link>
-              <Link to={`/invite/${a.id}`} className="row__act">
-                Invite →
-              </Link>
+              <div className="scard__actions">
+                <Link to={`/invite/${a.id}`} className="scard__act scard__act--invite">
+                  Invite friends →
+                </Link>
+                <button
+                  type="button"
+                  className="scard__act scard__act--remove"
+                  aria-label={`Remove ${a.title} from Saved`}
+                  onClick={() => remove(a)}
+                >
+                  Remove
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
+
+      {/* Always present so screen readers hear the message; it floats above the tab bar while the list scrolls. */}
+      <div className="toast" aria-live="polite">
+        {removed && (
+          <div key={removed.id} className="toast__msg">
+            <span>Removed {removed.title}</span>
+            <button type="button" className="toast__undo" onClick={undo}>
+              Undo
+            </button>
+          </div>
+        )}
+      </div>
     </Screen>
   );
 }
