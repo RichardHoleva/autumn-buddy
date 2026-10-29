@@ -508,17 +508,11 @@ em {
   position: relative;
   flex: 1 1 452px;
   min-height: 270px;
-  max-height: 452px;
-  margin: 22px 24px 0;
+  max-height: 540px;
+  margin: 20px 24px 6px;
 }
-/* Short phones: tighten the chrome so the card shrinks and Save / Invite stay on screen. */
-@media (max-height: 720px) {
-  .dateline {
-    padding-top: 18px;
-  }
-  .tabbar {
-    padding-bottom: calc(16px + var(--safe-bottom));
-  }
+.deck--end {
+  max-height: none;
 }
 .deck__layer {
   position: absolute;
@@ -549,34 +543,32 @@ em {
   touch-action: pan-y;
   user-select: none;
   box-shadow: 0 18px 40px -22px rgba(36, 28, 22, 0.4);
+  animation: card-in 0.3s var(--ease);
 }
 .card:active {
   cursor: grabbing;
 }
+/* `scale` (not `transform`) so the entrance never fights the inline drag transform. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+/* The photo takes whatever height the text leaves, so it stays the biggest thing on the card. */
 .card__photo {
   position: relative;
-  flex: 0 1 268px;
-  min-height: 120px;
+  flex: 1 1 0;
+  min-height: 110px;
   border-radius: 18px;
   display: flex;
   align-items: flex-end;
   padding: 14px;
   font: 400 10px var(--mono);
 }
-.card__no {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 10px;
-  border-radius: 14px;
-  background: var(--paper);
-  font: 400 10px var(--mono);
-  color: var(--ink);
-}
 .stamp {
   position: absolute;
   top: 16px;
-  right: 16px;
   padding: 6px 12px;
   border: 2px solid;
   border-radius: 8px;
@@ -587,28 +579,33 @@ em {
   opacity: 0;
   pointer-events: none;
 }
+/* Each stamp sits on the side the card is dragged toward. */
 .stamp--save {
+  left: 16px;
   color: var(--olive);
-  transform: rotate(8deg);
-}
-.stamp--skip {
-  color: var(--muted);
   transform: rotate(-8deg);
 }
-.card__meta {
-  padding: 18px 10px 0;
-  display: flex;
-  gap: 8px;
-  font: 400 10px var(--mono);
-  letter-spacing: 0.06em;
+.stamp--skip {
+  right: 16px;
   color: var(--muted);
+  transform: rotate(8deg);
+}
+.card__body {
+  flex: none;
+  padding: 16px 10px 8px;
 }
 .card__title {
-  padding: 8px 10px 0;
   font: 400 36px/1 var(--serif);
 }
+.card__meta {
+  margin-top: 8px;
+  font: 400 11px var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 .card__desc {
-  padding: 8px 10px 0;
+  margin-top: 10px;
   font-size: 14px;
   line-height: 1.45;
   color: var(--body);
@@ -635,58 +632,165 @@ em {
   color: var(--muted);
   text-wrap: pretty;
 }
+
+/* Gesture hint, and the "Saved" confirmation that takes its place for a moment. */
+.feedback {
+  flex: none;
+  height: 40px;
+  padding: 0 28px;
+  display: grid;
+  place-items: center;
+}
+.feedback > * {
+  grid-area: 1 / 1;
+}
+.feedback__hint {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+  text-align: center;
+  text-wrap: balance;
+  transition: opacity 0.2s var(--ease);
+}
+.feedback__hint--off {
+  opacity: 0;
+}
+.feedback__live {
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+}
+.feedback__saved {
+  max-width: 100%;
+  padding: 7px 14px;
+  border-radius: 16px;
+  background: var(--olive-bg);
+  color: var(--olive-ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: note 2.2s var(--ease) both;
+}
+@keyframes note {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  10%,
+  82% {
+    opacity: 1;
+    translate: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Skip on the left, Save on the right (matching the swipe directions); View activity is the main action. */
 .actions {
   flex: none;
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 60px 1fr 60px;
   align-items: center;
-  padding: 22px 24px 4px;
+  gap: 12px;
+  padding: 0 24px 4px;
 }
-.round,
-.pillbtn {
+.swipebtn {
+  height: 60px;
   border: 1px solid var(--line-strong);
+  border-radius: 30px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: none;
+  gap: 4px;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+  transition: background 0.15s, transform 0.15s var(--ease);
 }
-.round {
-  width: 54px;
-  height: 54px;
-  border-radius: 27px;
-  font-size: 20px;
+.swipebtn--save {
+  color: var(--olive-ink);
 }
-.pillbtn {
-  height: 54px;
-  padding: 0 20px;
-  border-radius: 27px;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 14px;
-}
-.round:hover:not(:disabled),
-.pillbtn:hover:not(:disabled) {
+.swipebtn:hover {
   background: var(--hover);
 }
-.round:disabled,
-.pillbtn:disabled {
-  opacity: 0.45;
-}
-.mono-count {
-  font: 400 11px var(--mono);
-  color: var(--muted);
+.swipebtn:active {
+  transform: scale(0.94);
 }
 .cta {
-  flex: 1;
-  height: 54px;
-  border-radius: 27px;
+  height: 60px;
+  border-radius: 30px;
   background: var(--accent);
   color: var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
+  white-space: nowrap;
+  transition: transform 0.15s var(--ease), filter 0.15s;
+}
+.cta:hover {
+  filter: brightness(0.94);
+}
+.cta:active {
+  transform: scale(0.98);
+}
+
+/* Short phones: tighten the chrome so the card shrinks and Skip / View / Save stay on screen.
+   These sit after the base rules above so they win. */
+@media (max-height: 720px) {
+  .dateline {
+    padding-top: 18px;
+  }
+  /* One line (the vw cap keeps it on one line down to 320px wide). */
+  .title--discover {
+    font-size: min(34px, 9.4vw);
+  }
+  .tabbar {
+    padding-bottom: calc(16px + var(--safe-bottom));
+  }
+  .deck {
+    margin-top: 14px;
+  }
+}
+@media (max-height: 640px) {
+  .deck {
+    min-height: 256px;
+  }
+  .feedback {
+    height: 32px;
+  }
+  .card__body {
+    padding-top: 12px;
+  }
+  .card__title {
+    font-size: 30px;
+  }
+}
+@media (max-width: 359px) {
+  .actions {
+    grid-template-columns: 56px 1fr 56px;
+    gap: 8px;
+  }
+  .swipebtn {
+    height: 56px;
+    border-radius: 28px;
+  }
+  .cta {
+    height: 56px;
+    border-radius: 28px;
+    font-size: 15px;
+  }
+  .cta__arrow {
+    display: none;
+  }
 }
 
 /* ---------- Saved / Invites lists ---------- */

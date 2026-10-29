@@ -37,7 +37,7 @@ GitHub Pages.
 | Route | Screen |
 | --- | --- |
 | `#/` | Welcome |
-| `#/discover` | Swipe deck. Drag right to save, left to skip, tap for details. Arrow keys work on desktop. |
+| `#/discover` | Swipe deck. Drag right to save, left to skip, tap the card (or **View activity**) for details. Skip / Save buttons and arrow keys work too. |
 | `#/saved` | Saved list with All / Outdoors / Indoors filter |
 | `#/invites` | Sent invites and their status |
 | `#/details/:id` | Activity details |

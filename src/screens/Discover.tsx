@@ -2,15 +2,33 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Photo } from '../components/Photo';
 import { Screen } from '../components/Screen';
-import { ACTIVITIES, TOTAL } from '../data/activities';
+import { ACTIVITIES } from '../data/activities';
 import { WEATHER } from '../data/when';
-import { dateLine, pad2 } from '../lib/format';
+import { dateLine } from '../lib/format';
 import { useStore } from '../state/store';
 
 const SWIPE_DISTANCE = 100;
 const EXIT_MS = 260;
+/** How long the "Saved" confirmation stays up. Keep in sync with the `note` animation in styles.css. */
+const SAVED_NOTE_MS = 2200;
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+function IconSkip() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+function IconSave() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20.2C7 16.7 3.5 13.5 3.5 9.6 3.5 7.2 5.3 5.5 7.6 5.5c1.7 0 3.4.9 4.4 2.5 1-1.6 2.7-2.5 4.4-2.5 2.3 0 4.1 1.7 4.1 4.1 0 3.9-3.5 7.1-8.5 10.6z" />
+    </svg>
+  );
+}
 
 export function Discover() {
   const { state, dispatch } = useStore();
@@ -24,11 +42,20 @@ export function Discover() {
 
   const [dx, setDx] = useState(0);
   const [phase, setPhase] = useState<'idle' | 'drag' | 'leave'>('idle');
+  // `n` makes back-to-back saves restart the confirmation instead of reusing the old element.
+  const [savedNote, setSavedNote] = useState<{ title: string; n: number } | null>(null);
   const origin = useRef({ x: 0, moved: false });
   const leaving = useRef(false);
   const timer = useRef<number | undefined>(undefined);
+  const noteTimer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current);
+      window.clearTimeout(noteTimer.current);
+    },
+    [],
+  );
 
   const decide = (dir: 1 | -1) => {
     if (!card || leaving.current) return;
@@ -36,6 +63,11 @@ export function Discover() {
     setPhase('leave');
     setDx(dir * 480);
     const id = card.id;
+    if (dir > 0) {
+      setSavedNote({ title: card.title, n: Date.now() });
+      window.clearTimeout(noteTimer.current);
+      noteTimer.current = window.setTimeout(() => setSavedNote(null), SAVED_NOTE_MS);
+    }
     timer.current = window.setTimeout(() => {
       dispatch({ type: dir > 0 ? 'save' : 'skip', id });
       leaving.current = false;
@@ -88,7 +120,11 @@ export function Discover() {
         <span>
           {dateLine()} · {WEATHER.temperature}
         </span>
-        <span>SUNSET {WEATHER.sunset}</span>
+        {remaining.length > 0 && (
+          <span>
+            {remaining.length} {remaining.length === 1 ? 'IDEA' : 'IDEAS'} LEFT
+          </span>
+        )}
       </div>
       <h1 className="title title--discover">
         Find your <em className="accent">little moment.</em>
@@ -113,9 +149,6 @@ export function Discover() {
             }}
           >
             <Photo activity={card} className="card__photo">
-              <div className="card__no">
-                No. {pad2(card.no)} / {pad2(TOTAL)}
-              </div>
               <div className="stamp stamp--save" style={{ opacity: clamp01((dx - 30) / 70) }}>
                 SAVE
               </div>
@@ -123,17 +156,17 @@ export function Discover() {
                 SKIP
               </div>
             </Photo>
-            <div className="card__meta">
-              <span>{card.minutes} MIN</span>
-              <span>·</span>
-              <span>{card.where.toUpperCase()}</span>
+            <div className="card__body">
+              <div className="card__title">{card.title}</div>
+              <div className="card__meta">
+                {card.minutes} min · {card.where}
+              </div>
+              <div className="card__desc">{card.blurb}</div>
             </div>
-            <div className="card__title">{card.title}</div>
-            <div className="card__desc">{card.blurb}</div>
           </div>
         </div>
       ) : (
-        <div className="deck">
+        <div className="deck deck--end">
           <div className="deck__end">
             <div className="deck__end-title">
               That’s every idea <em>for now.</em>
@@ -141,40 +174,57 @@ export function Discover() {
             <p className="deck__end-copy">
               {state.skipped.length > 0
                 ? 'Skipped a few? They can come back whenever you like.'
-                : 'You saved all of them. Time to send a friendly invite.'}
+                : 'You saved every idea. Open one to plan it with a friend.'}
             </p>
-            {state.skipped.length > 0 && (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => dispatch({ type: 'resetSkipped' })}>
-                Bring back skipped ({state.skipped.length})
-              </button>
-            )}
             {state.saved.length > 0 && (
-              <Link to="/saved" className="textbtn textbtn--accent">
+              <Link to="/saved" className="btn btn--accent btn--sm btn--auto">
                 See saved →
               </Link>
+            )}
+            {state.skipped.length > 0 && (
+              <button
+                type="button"
+                className={state.saved.length > 0 ? 'btn btn--ghost btn--sm btn--auto' : 'btn btn--accent btn--sm btn--auto'}
+                onClick={() => dispatch({ type: 'resetSkipped' })}
+              >
+                Bring back skipped ({state.skipped.length})
+              </button>
             )}
           </div>
         </div>
       )}
 
-      <div className="actions">
-        <button type="button" className="round" aria-label="Skip" disabled={!card} onClick={() => decide(-1)}>
-          ×
-        </button>
-        <button type="button" className="pillbtn" aria-label="Save" disabled={!card} onClick={() => decide(1)}>
-          Save
-          <span className="mono-count">{state.saved.length}</span>
-        </button>
-        {card ? (
-          <Link to={`/invite/${card.id}`} className="cta">
-            Invite a friend →
-          </Link>
-        ) : (
-          <Link to="/saved" className="cta">
-            Open saved →
-          </Link>
+      {/* One quiet line under the card: the gesture hint, swapped for a confirmation when something is saved. */}
+      <div className="feedback">
+        {card && (
+          <p className={savedNote ? 'feedback__hint feedback__hint--off' : 'feedback__hint'}>
+            Swipe left to skip, right to save, tap to open.
+          </p>
         )}
+        <div className="feedback__live" aria-live="polite">
+          {savedNote && (
+            <p key={savedNote.n} className="feedback__saved">
+              <span aria-hidden="true">✓</span> Saved · {savedNote.title}
+            </p>
+          )}
+        </div>
       </div>
+
+      {card && (
+        <div className="actions">
+          <button type="button" className="swipebtn swipebtn--skip" onClick={() => decide(-1)}>
+            <IconSkip />
+            Skip
+          </button>
+          <Link to={`/details/${card.id}`} className="cta" aria-label={`View activity: ${card.title}`}>
+            View activity <span className="cta__arrow">→</span>
+          </Link>
+          <button type="button" className="swipebtn swipebtn--save" onClick={() => decide(1)}>
+            <IconSave />
+            Save
+          </button>
+        </div>
+      )}
     </Screen>
   );
 }
