@@ -28,12 +28,7 @@ export function Rainy() {
       </div>
 
       <div className="planb">
-        <Photo
-          activity={planB}
-          className="planb__photo"
-          stripe={8}
-          caption={<span>photo: {planB.detailPhoto}</span>}
-        />
+        <Photo activity={planB} className="planb__photo" sizes="(max-width: 500px) 88vw, 340px" eager />
         <div className="planb__head">
           <span className="planb__title">{planB.title}</span>
           <span className="planb__tag">PLAN B</span>

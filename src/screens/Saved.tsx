@@ -86,7 +86,7 @@ export function Saved() {
           {shown.map((a) => (
             <li key={a.id} className="scard">
               <Link to={`/details/${a.id}`} className="scard__main">
-                <Photo activity={a} stripe={6} className="scard__thumb" caption={null} />
+                <Photo activity={a} className="scard__thumb" sizes="68px" />
                 <div>
                   <div className="scard__title">{a.title}</div>
                   <div className="scard__meta">

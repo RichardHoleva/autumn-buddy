@@ -53,17 +53,39 @@ Discover and Saved are the two tabs. Every other screen has a Back button, and a
 - The shared link is `<site>/#/details/:id`, which opens the activity with no account. It is only added when the app is served from a public address; on `localhost` or a LAN address (`npm run dev:phone`) it is left out, since a friend couldn't open it. Share and clipboard are also unavailable on plain-HTTP LAN addresses, so expect the copy fallback there.
 - The message is built in `src/lib/invitation.ts`; sharing and copying are in `src/lib/share.ts`.
 - Nothing is tracked after sharing: there is no invite history, no replies and no accounts.
-- Activities, copy and photo slots are in `src/data/activities.ts`. Set `image` on an activity to use a real photo instead of the striped placeholder.
+- Activities and their copy are in `src/data/activities.ts`. Photos are described in the [Photos](#photos) section below.
 - The date is live. The temperature on Discover is a fixed placeholder in `src/data/when.ts` until a weather source is connected.
+
+## Photos
+
+Every activity has a photo, shown on Discover, Details, Saved, the invitation card, the Welcome collage and the rainy-day "Plan B" card.
+
+- **Where they live:** `public/images/activities/`. Each activity has two JPEGs named after its `id`: `<id>.jpg` (1080 px wide) and `<id>-480.jpg` (480 px wide, for thumbnails). About 1.6 MB for all twelve.
+- **How they are wired:** each activity in `src/data/activities.ts` has `image` (the path, with no leading slash so it works under a GitHub Pages sub-path), `imageAlt` (what the photo shows, for screen readers) and an optional `imageFocus` (a CSS `object-position`, to keep the subject in frame when a card crops the photo).
+- **How they render:** the `Photo` component (`src/components/Photo.tsx`) draws an `<img>` with `object-fit: cover` and a `srcset`, so thumbnails download the small file and cards and heroes the large one. The box gets its size from CSS, so nothing shifts while a photo loads. A soft tint shows until it arrives, and stays (with the description attached) if the file is missing. Discover also fetches the next card's photo ahead of time.
+- **Swapping a photo:** save the new image over `<id>.jpg` and `<id>-480.jpg` (same names, a 4:5 crop works best), then update `imageAlt` and, if the subject is off-centre, `imageFocus`. A new activity needs the same two files plus the three fields.
+
+**Credits.** All photos are from [Pexels](https://www.pexels.com/) under the [Pexels license](https://www.pexels.com/license/) (free to use and modify, attribution not required). They were cropped, resized and lightly colour-adjusted to sit together.
+
+| Activity | Photo | Photographer |
+| --- | --- | --- |
+| Hot Drink Walk | [Cozy Autumn Scene with Coffee and Leaves](https://www.pexels.com/photo/cozy-autumn-scene-with-coffee-and-leaves-40107301/) | elena_ sher |
+| Leaf Hunt | [Hand Holding Autumn Leaves in Vibrant Fall Colors](https://www.pexels.com/photo/hand-holding-autumn-leaves-in-vibrant-fall-colors-34988628/) | Rahime Gül |
+| Rainy Day Swap | [Cup of Tea and an Eyeglasses on the Stacks of Books Near the Window](https://www.pexels.com/photo/cup-of-tea-and-an-eyeglasses-on-the-stacks-of-books-near-the-window-8549590/) | Taryn Elliott |
+| Golden Hour Bench | [Brown Wooden Park Bench Under Green Leaf Tree during Sunset](https://www.pexels.com/photo/brown-wooden-park-bench-under-green-leaf-tree-during-sunset-908986/) | Robin McPherson |
+| Cinnamon Bake | [Flat-lay Photography of Person Holding Round White Bowl](https://www.pexels.com/photo/flat-lay-photography-of-person-holding-round-white-bowl-302544/) | Pixabay (as credited on Pexels) |
+| Market Wander | [Pumpkins on Wooden Crates](https://www.pexels.com/photo/pumpkins-on-wooden-crates-13352333/) | Shonna Franks |
 
 ## Layout
 
 ```
+public/
+  images/activities/  the photos (<id>.jpg and <id>-480.jpg)
 src/
   data/      activities, when options and the placeholder temperature
-  lib/       invitation.ts (message and link), share.ts (share sheet and copy), format.ts
+  lib/       invitation.ts (message and link), share.ts (share sheet and copy), images.ts (photo URLs), format.ts
   state/     store.tsx (saved and skipped ideas, localStorage)
   screens/   one file per screen
-  components Screen shell (Back button, tab bar), photo placeholder
+  components Screen shell (Back button, tab bar), Photo
   styles.css design tokens and all styles
 ```

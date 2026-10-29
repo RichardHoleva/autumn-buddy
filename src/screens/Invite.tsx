@@ -101,7 +101,7 @@ function InviteForm({ activity: a }: { activity: Activity }) {
 
       <div className="invcard">
         <div className="invcard__act">
-          <Photo activity={a} stripe={5} className="invcard__thumb" caption={null} />
+          <Photo activity={a} className="invcard__thumb" sizes="56px" eager />
           <div>
             <div className="invcard__title">{a.title}</div>
             <div className="invcard__meta">

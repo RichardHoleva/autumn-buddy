@@ -16,10 +16,10 @@ export function Welcome() {
       </h1>
 
       <div className="collage" aria-hidden="true">
-        <Photo activity={leaves} className="collage__card collage__card--left" caption={null} />
-        <Photo activity={rainy} className="collage__card collage__card--right" caption={null} />
+        <Photo activity={leaves} className="collage__card collage__card--left" sizes="170px" eager />
+        <Photo activity={rainy} className="collage__card collage__card--right" sizes="170px" eager />
         <div className="collage__front">
-          <Photo activity={hero} className="collage__photo" caption={<span>photo: warm cup</span>} />
+          <Photo activity={hero} className="collage__photo" sizes="170px" eager />
           <div className="collage__name">{hero.title}</div>
           <div className="collage__meta">
             {hero.minutes} MIN · {hero.where.toUpperCase()}

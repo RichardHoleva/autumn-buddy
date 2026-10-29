@@ -17,7 +17,7 @@ export function Details() {
 
   return (
     <Screen bleed back>
-      <Photo activity={a} className="hero" caption={<span className="hero__cap">photo: {a.detailPhoto}</span>} />
+      <Photo activity={a} className="hero" sizes="(max-width: 500px) 100vw, 390px" eager />
 
       <div className="sheet">
         <h1 className="sheet__title">{a.title}</h1>

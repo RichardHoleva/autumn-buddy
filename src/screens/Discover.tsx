@@ -5,8 +5,11 @@ import { Screen } from '../components/Screen';
 import { ACTIVITIES } from '../data/activities';
 import { WEATHER } from '../data/when';
 import { dateLine } from '../lib/format';
+import { preloadPhoto } from '../lib/images';
 import { useStore } from '../state/store';
 
+/** The card photo is about 88% of the screen width on phones and a fixed width in the desktop frame. */
+const CARD_SIZES = '(max-width: 500px) 88vw, 330px';
 const SWIPE_DISTANCE = 100;
 const EXIT_MS = 260;
 /** How long the "Saved" confirmation stays up. Keep in sync with the `note` animation in styles.css. */
@@ -56,6 +59,11 @@ export function Discover() {
     },
     [],
   );
+
+  // Fetch the next card's photo ahead of time, so it is already loaded when it comes up.
+  useEffect(() => {
+    remaining.slice(1, 2).forEach((a) => preloadPhoto(a, CARD_SIZES));
+  }, [remaining]);
 
   const decide = (dir: 1 | -1) => {
     if (!card || leaving.current) return;
@@ -148,7 +156,7 @@ export function Discover() {
               transition: phase === 'drag' ? 'none' : `transform ${EXIT_MS}ms cubic-bezier(.2,.7,.3,1)`,
             }}
           >
-            <Photo activity={card} className="card__photo">
+            <Photo activity={card} className="card__photo" sizes={CARD_SIZES} eager>
               <div className="stamp stamp--save" style={{ opacity: clamp01((dx - 30) / 70) }}>
                 SAVE
               </div>
